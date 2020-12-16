@@ -1,24 +1,12 @@
 # This version must match the MAKE_DC_VERSION value below
-version: "2.3"
-
-volumes:
-  pgdata:
-
-networks:
-  postgres_conn:
-    driver: bridge
-
+version: "3.9"
 services:
-
   postgres:
     image: "${POSTGIS_IMAGE:-openmaptiles/postgis}:${TOOLS_VERSION}"
     # Use "command: postgres -c jit=off" for PostgreSQL 11+ because of slow large MVT query processing
     volumes:
       - pgdata:/var/lib/postgresql/data
-    networks:
-      - postgres_conn
-    ports:
-      - "5432"
+    network_mode: host
     env_file: .env-postgres
 
   import-data:
@@ -33,7 +21,7 @@ services:
     environment:
       # Must match the version of this file (first line)
       # download-osm will use it when generating a composer file
-      MAKE_DC_VERSION: "2.3"
+      MAKE_DC_VERSION: "3.9"
       # Allow DIFF_MODE, MIN_ZOOM, and MAX_ZOOM to be overwritten from shell
       DIFF_MODE: ${DIFF_MODE}
       MIN_ZOOM: ${MIN_ZOOM}
@@ -48,8 +36,7 @@ services:
       BORDERS_CSV_FILE: ${BORDERS_CSV_FILE}
       # Control import-sql processes
       MAX_PARALLEL_PSQL: ${MAX_PARALLEL_PSQL}
-    networks:
-      - postgres_conn
+    network_mode: host
     volumes:
       - .:/tileset
       - ./data:/import
@@ -63,8 +50,7 @@ services:
     volumes:
       - ./data:/export
       - ./build/openmaptiles.tm2source:/tm2source
-    networks:
-      - postgres_conn
+    network_mode: host
     env_file: .env
     environment:
       FILTER_MAPNIK_OUTPUT: ${FILTER_MAPNIK_OUTPUT}
@@ -77,8 +63,7 @@ services:
     volumes:
       - ./data:/export
       - ./build/openmaptiles.tm2source:/tm2source
-    networks:
-      - postgres_conn
+    network_mode: host
     env_file: .env
     environment:
       FILTER_MAPNIK_OUTPUT: ${FILTER_MAPNIK_OUTPUT}
@@ -96,9 +81,6 @@ services:
     env_file: .env
     environment:
       TILESET_FILE: ${TILESET_FILE}
-    networks:
-      - postgres_conn
-    ports:
-      - "${PPORT:-8090}:${PPORT:-8090}"
+    network_mode: host
     volumes:
       - .:/tileset
